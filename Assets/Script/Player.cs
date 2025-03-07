@@ -7,7 +7,14 @@ public class Player : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpforce;
     
+    [Header("Dash Info")]
+    [SerializeField] private float dashSpeed;
+    [SerializeField] private float dashDuration;
+    private float dashTime;
 
+    [SerializeField] private float dashCooldown;
+    private float dashCooldownTimer;
+    
     private float xInput;
     private Animator anim;
     private Rigidbody2D rb;
@@ -30,8 +37,10 @@ public class Player : MonoBehaviour
     {
         Movement();
         CheckInput();
-
         CollisionCheck();        
+
+        dashTime -= Time.deltaTime;
+        dashCooldownTimer -= Time.deltaTime;
 
         FlipController();
         AnimatorController();
@@ -45,11 +54,23 @@ public class Player : MonoBehaviour
         {
             Jump();
         }
+
+        if(Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            DashAbility();
+        }
     }
 
     private void Movement()
     {
-        rb.velocity = new Vector2(xInput * moveSpeed, rb.velocity.y);
+        if(dashTime > 0)
+        {
+            rb.velocity = new Vector2(xInput * dashSpeed, 0);
+        }
+        else
+        {
+            rb.velocity = new Vector2(xInput * moveSpeed, rb.velocity.y);
+        }
     }
 
     private void Jump()
@@ -63,6 +84,15 @@ public class Player : MonoBehaviour
         isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
     }
 
+    private void DashAbility()
+    {
+        if(dashCooldownTimer < 0)
+        {
+            dashCooldownTimer = dashCooldown;
+            dashTime = dashDuration;
+        }
+    }
+
     private void AnimatorController()
     {
         bool isMoving = rb.velocity.x != 0; //ย่อการใช้ if / else
@@ -70,6 +100,7 @@ public class Player : MonoBehaviour
         anim.SetFloat("yVelocity", rb.velocity.y);
         anim.SetBool("isMoving", isMoving);
         anim.SetBool("isGrounded", isGrounded);
+        anim.SetBool("isDashing", dashTime > 0);
 
     }
 
