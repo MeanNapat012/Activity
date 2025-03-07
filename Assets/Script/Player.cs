@@ -7,23 +7,71 @@ public class Player : MonoBehaviour
     [SerializeField] private float moveSpeed;
     [SerializeField] private float jumpforce;
     
+
     private float xInput;
+    private Animator anim;
     private Rigidbody2D rb;
+
+    private int facingDir = 1;
+    private bool facingRight = true;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        anim = GetComponentInChildren<Animator>();
     }
 
     void Update()
     {
-        xInput = Input.GetAxisRaw("Horizontal");
+        Movement();
+        CheckInput();
         
-        rb.velocity = new Vector2(xInput * moveSpeed, rb.velocity.y);
+        FlipController();
+        AnimatorController();
+    }
+
+    private void CheckInput()
+    {
+        xInput = Input.GetAxisRaw("Horizontal");
 
         if(Input.GetKeyDown(KeyCode.Space))
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpforce);
+            Jump();
         }
     }
+
+    private void Movement()
+    {
+        rb.velocity = new Vector2(xInput * moveSpeed, rb.velocity.y);
+    }
+
+    private void Jump()
+    {
+        rb.velocity = new Vector2(rb.velocity.x, jumpforce);
+    }
+
+    private void AnimatorController()
+    {
+        bool isMoving = rb.velocity.x != 0; //ย่อการใช้ if / else
+
+        anim.SetBool("isMoving", isMoving);
+
+    }
+
+    private void Flip()
+    {
+        facingDir = facingDir * -1;
+        facingRight = !facingRight; 
+        transform.Rotate(0, 180, 0);
+    }
+
+    private void FlipController()
+    {
+        if(rb.velocity.x > 0 && !facingRight) 
+            Flip();
+        else if(rb.velocity.x < 0 && facingRight) 
+            Flip();
+        
+    }
+    
 }
