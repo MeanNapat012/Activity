@@ -15,6 +15,11 @@ public class Player : MonoBehaviour
     private int facingDir = 1;
     private bool facingRight = true;
 
+    [Header("Collision Info")]
+    [SerializeField] private float groundCheckDistance;
+    [SerializeField] private LayerMask whatIsGround;
+    private bool isGrounded;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -25,7 +30,9 @@ public class Player : MonoBehaviour
     {
         Movement();
         CheckInput();
-        
+
+        CollisionCheck();        
+
         FlipController();
         AnimatorController();
     }
@@ -47,14 +54,22 @@ public class Player : MonoBehaviour
 
     private void Jump()
     {
-        rb.velocity = new Vector2(rb.velocity.x, jumpforce);
+        if(isGrounded)
+            rb.velocity = new Vector2(rb.velocity.x, jumpforce);
+    }
+
+    private void CollisionCheck()
+    {
+        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, groundCheckDistance, whatIsGround);
     }
 
     private void AnimatorController()
     {
         bool isMoving = rb.velocity.x != 0; //ย่อการใช้ if / else
 
+        anim.SetFloat("yVelocity", rb.velocity.y);
         anim.SetBool("isMoving", isMoving);
+        anim.SetBool("isGrounded", isGrounded);
 
     }
 
@@ -73,5 +88,9 @@ public class Player : MonoBehaviour
             Flip();
         
     }
-    
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawLine(transform.position, new Vector3(transform.position.x, transform.position.y - groundCheckDistance));
+    }    
 }
