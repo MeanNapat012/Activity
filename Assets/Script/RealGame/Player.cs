@@ -8,6 +8,13 @@ public class Player : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpForce;
 
+    [Header("Dash info")]
+    [SerializeField] private float dashCooldown;
+    private float dashUsageTimer;
+    public float dashSpeed;
+    public float dashDuration;
+    public float dashDir {get; private set;}
+
     [Header("Collision info")]
     [SerializeField] private Transform groundCheck;
     [SerializeField] private float groundCheckDistance;
@@ -31,16 +38,20 @@ public class Player : MonoBehaviour
     public PlayerMoveState moveState {get; private set;}
     public PlayerJumpState jumpState {get; private set;}
     public PlayerAirState  airState  {get; private set;}
+    public PlayerDashState dashState {get; private set;}
     #endregion
 
     private void Awake()
     {
+        facingDir = 1; //ใส่เข้ามาเพราะ facingDir มันเป็น 0 ตลอด
+
         stateMachine = new PlayerStateMachine();
 
         idleState = new PlayerIdleState(this,stateMachine,"Idle");
         moveState = new PlayerMoveState(this,stateMachine,"Move");
         jumpState = new PlayerJumpState(this,stateMachine,"Jump");
         airState  = new PlayerAirState(this,stateMachine,"Jump");
+        dashState = new PlayerDashState(this,stateMachine,"Dash");
     }
 
     private void Start()
@@ -54,6 +65,26 @@ public class Player : MonoBehaviour
     private void Update()
     {
         stateMachine.currentState.Update();
+
+        CheckForDashInput();
+    }
+
+    private void CheckForDashInput()
+    {
+        dashUsageTimer -= Time.deltaTime;
+
+        if(Input.GetKeyDown(KeyCode.LeftShift) && dashUsageTimer < 0)
+        {
+            dashUsageTimer = dashCooldown;
+            dashDir = Input.GetAxisRaw("Horizontal");
+
+            if(dashDir == 0)
+                dashDir = facingDir;
+            
+
+            stateMachine.ChangeState(dashState);
+        }    
+            
     }
 
     public void SetVelocity(float _xVelocity, float _yVelocity)
