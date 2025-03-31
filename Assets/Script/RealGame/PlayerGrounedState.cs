@@ -18,6 +18,9 @@ public class PlayerGrounedState : PlayerState
     {
         base.Update();
 
+        if(Input.GetKeyDown(KeyCode.Mouse0))
+            stateMachine.ChangeState(player.pimaryAttack);
+            
         if(!player.IsGroundDetected())
             stateMachine.ChangeState(player.airState);
 
